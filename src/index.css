@@ -2,39 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Luxe Hair & Spa Design System - Luxury salon aesthetics with warm accents */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Luxury salon color palette */
+    --background: 248 250 252; /* f8fafc - soft white */
+    --foreground: 15 23 42; /* 0f172a - deep charcoal */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255; /* pure white cards */
+    --card-foreground: 15 23 42;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 15 23 42; /* 0f172a - sophisticated dark */
+    --primary-foreground: 248 250 252;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 248 250 252; /* soft background */
+    --secondary-foreground: 15 23 42;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 226 232 240; /* e2e8f0 - subtle gray */
+    --muted-foreground: 100 116 139; /* 64748b */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 217 119 6; /* d97706 - warm amber */
+    --accent-foreground: 255 255 255;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 217 119 6; /* accent ring */
+
+    /* Luxury gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(15 23 42) 0%, hsl(30 27 48) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(217 119 6) 0%, hsl(245 101 10) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(248 250 252) 0%, hsl(241 245 249) 100%);
+
+    /* Luxury shadows */
+    --shadow-luxury: 0 25px 50px -12px hsl(15 23 42 / 0.25);
+    --shadow-elegant: 0 10px 30px -10px hsl(217 119 6 / 0.3);
+    --shadow-soft: 0 4px 20px -4px hsl(15 23 42 / 0.1);
 
     --radius: 0.5rem;
 
@@ -100,6 +111,50 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-playfair;
+  }
+}
+
+@layer components {
+  /* Luxury utility classes */
+  .luxury-shadow {
+    box-shadow: var(--shadow-luxury);
+  }
+
+  .elegant-shadow {
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .soft-shadow {
+    box-shadow: var(--shadow-soft);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .gradient-subtle {
+    background: var(--gradient-subtle);
+  }
+
+  /* Luxury button variants */
+  .btn-luxury {
+    @apply bg-primary text-primary-foreground px-8 py-4 rounded-xl font-medium tracking-wide transition-all duration-300 luxury-shadow hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .btn-accent {
+    @apply bg-accent text-accent-foreground px-8 py-4 rounded-xl font-medium tracking-wide transition-all duration-300 elegant-shadow hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-primary border-2 border-primary px-8 py-4 rounded-xl font-medium tracking-wide transition-all duration-300 hover:bg-primary hover:text-primary-foreground;
   }
 }
