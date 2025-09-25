@@ -21,13 +21,13 @@ const Hero = () => {
           {/* Left Content */}
           <div className="text-center lg:text-left">
             <div className="mb-6">
-              <div className="inline-flex items-center space-x-2 bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <div className="inline-flex items-center space-x-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
                 <Star className="w-4 h-4 fill-current" />
                 <span>5-Star Rated Salon</span>
               </div>
               <h1 className="text-4xl md:text-6xl font-playfair font-bold text-white mb-6 leading-tight">
                 Book Your Next
-                <span className="block text-accent">Look in Seconds</span>
+                <span className="block text-white">Look in Seconds</span>
               </h1>
               <p className="text-xl text-white/90 mb-8 max-w-xl">
                 Transform your style at Dhaka's premier luxury salon. Professional stylists, premium products, and an unforgettable experience.
@@ -74,15 +74,15 @@ const Hero = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
                   <span className="font-medium">Classic Haircut</span>
-                  <span className="text-accent font-bold">৳40</span>
+                  <span className="text-primary font-bold">৳40</span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
                   <span className="font-medium">Signature Facial</span>
-                  <span className="text-accent font-bold">৳60</span>
+                  <span className="text-primary font-bold">৳60</span>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
                   <span className="font-medium">Bridal Makeup</span>
-                  <span className="text-accent font-bold">৳150</span>
+                  <span className="text-primary font-bold">৳150</span>
                 </div>
               </div>
 

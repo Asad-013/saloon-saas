@@ -13,8 +13,8 @@ const Footer = () => {
             {/* Brand & Contact */}
             <div className="lg:col-span-2">
               <div className="flex items-center space-x-2 mb-6">
-                <div className="w-10 h-10 bg-gradient-accent rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">L</span>
+                 <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                  <span className="text-black font-bold text-xl">L</span>
                 </div>
                 <div>
                   <h3 className="text-xl font-playfair font-bold">Luxe Hair & Spa</h3>
@@ -28,16 +28,16 @@ const Footer = () => {
 
               {/* Contact Info */}
               <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-accent" />
+                 <div className="flex items-center space-x-3">
+                  <MapPin className="w-5 h-5 text-white" />
                   <span>120 Beauty Lane, Dhaka, Bangladesh</span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-accent" />
+                  <Phone className="w-5 h-5 text-white" />
                   <span>+880 1XXXXXXXXX</span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <Mail className="w-5 h-5 text-accent" />
+                  <Mail className="w-5 h-5 text-white" />
                   <span>hello@luxehairspa.com</span>
                 </div>
               </div>
@@ -52,28 +52,28 @@ const Footer = () => {
                     Home
                   </Link>
                 </li>
-                <li>
-                  <Link to="/services" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                 <li>
+                  <Link to="/services" className="text-primary-foreground/80 hover:text-white transition-colors">
                     Services
                   </Link>
                 </li>
                 <li>
-                  <Link to="/gallery" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                  <Link to="/gallery" className="text-primary-foreground/80 hover:text-white transition-colors">
                     Gallery
                   </Link>
                 </li>
                 <li>
-                  <Link to="/about" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                  <Link to="/about" className="text-primary-foreground/80 hover:text-white transition-colors">
                     About Us
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="text-primary-foreground/80 hover:text-accent transition-colors">
+                  <Link to="/contact" className="text-primary-foreground/80 hover:text-white transition-colors">
                     Contact
                   </Link>
                 </li>
                 <li>
-                  <Link to="/booking" className="text-accent hover:text-accent/80 transition-colors font-medium">
+                  <Link to="/booking" className="text-white hover:text-primary-foreground/80 transition-colors font-medium">
                     Book Now
                   </Link>
                 </li>
@@ -91,7 +91,7 @@ const Footer = () => {
               </ul>
 
               <h5 className="font-semibold mb-4 flex items-center">
-                <Clock className="w-5 h-5 text-accent mr-2" />
+                <Clock className="w-5 h-5 text-white mr-2" />
                 Opening Hours
               </h5>
               <div className="space-y-2 text-sm text-primary-foreground/80">
@@ -105,7 +105,7 @@ const Footer = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Sunday</span>
-                  <span className="text-accent">Closed</span>
+                  <span className="text-white">Closed</span>
                 </div>
               </div>
             </div>
@@ -125,7 +125,7 @@ const Footer = () => {
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary-foreground/70 hover:text-accent transition-colors"
+                className="text-primary-foreground/70 hover:text-white transition-colors"
               >
                 <Instagram className="w-5 h-5" />
               </a>
@@ -133,7 +133,7 @@ const Footer = () => {
                 href="https://facebook.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary-foreground/70 hover:text-accent transition-colors"
+                className="text-primary-foreground/70 hover:text-white transition-colors"
               >
                 <Facebook className="w-5 h-5" />
               </a>
@@ -141,7 +141,7 @@ const Footer = () => {
                 href="https://twitter.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary-foreground/70 hover:text-accent transition-colors"
+                className="text-primary-foreground/70 hover:text-white transition-colors"
               >
                 <Twitter className="w-5 h-5" />
               </a>

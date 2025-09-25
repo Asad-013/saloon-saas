@@ -44,7 +44,7 @@ const ServicesPreview = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-block bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-block bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
             Our Services
           </div>
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-primary mb-6">
@@ -70,7 +70,7 @@ const ServicesPreview = () => {
                   className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 {service.popular && (
-                  <div className="absolute top-4 left-4 bg-accent text-white px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
                     Popular
                   </div>
                 )}
@@ -80,10 +80,10 @@ const ServicesPreview = () => {
               {/* Service Content */}
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-xl font-playfair font-bold text-primary group-hover:text-accent transition-colors">
+                  <h3 className="text-xl font-playfair font-bold text-primary group-hover:text-muted-foreground transition-colors">
                     {service.title}
                   </h3>
-                  <span className="text-2xl font-bold text-accent">৳{service.price}</span>
+                  <span className="text-2xl font-bold text-primary">৳{service.price}</span>
                 </div>
 
                 <p className="text-muted-foreground mb-4 line-clamp-2">
@@ -97,7 +97,7 @@ const ServicesPreview = () => {
                   </div>
 
                   <Link to={`/services/${service.slug}`}>
-                    <Button variant="ghost" className="text-accent hover:text-accent-foreground hover:bg-accent p-2">
+                    <Button variant="ghost" className="text-primary hover:text-white hover:bg-primary p-2">
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>

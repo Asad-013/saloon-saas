@@ -41,7 +41,7 @@ const Testimonials = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <div className="inline-block bg-accent/10 text-accent px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <div className="inline-block bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
             Testimonials
           </div>
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-primary mb-6">
@@ -61,7 +61,7 @@ const Testimonials = () => {
             >
               {/* Quote Icon */}
               <div className="absolute -top-4 left-8">
-                <div className="bg-accent text-white p-3 rounded-full">
+                <div className="bg-primary text-white p-3 rounded-full">
                   <Quote className="w-5 h-5" />
                 </div>
               </div>
@@ -69,7 +69,7 @@ const Testimonials = () => {
               {/* Rating */}
               <div className="flex items-center mb-4 pt-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-accent fill-current" />
+                  <Star key={i} className="w-5 h-5 text-primary fill-current" />
                 ))}
               </div>
 
@@ -98,19 +98,19 @@ const Testimonials = () => {
         <div className="mt-16 pt-12 border-t border-border">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-accent mb-2">500+</div>
+              <div className="text-3xl font-bold text-primary mb-2">500+</div>
               <div className="text-muted-foreground">Happy Clients</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-accent mb-2">5.0</div>
+              <div className="text-3xl font-bold text-primary mb-2">5.0</div>
               <div className="text-muted-foreground">Average Rating</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-accent mb-2">98%</div>
+              <div className="text-3xl font-bold text-primary mb-2">98%</div>
               <div className="text-muted-foreground">Return Rate</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-accent mb-2">5+</div>
+              <div className="text-3xl font-bold text-primary mb-2">5+</div>
               <div className="text-muted-foreground">Years Experience</div>
             </div>
           </div>

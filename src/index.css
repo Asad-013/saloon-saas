@@ -2,98 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Luxe Hair & Spa Design System - Luxury salon aesthetics with warm accents */
+/* Luxe Hair & Spa Design System - Black and White Theme */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Luxury salon color palette */
-    --background: 248 250 252; /* f8fafc - soft white */
-    --foreground: 15 23 42; /* 0f172a - deep charcoal */
+    /* Black and white color palette */
+    --background: 255 255 255; /* pure white background */
+    --foreground: 0 0 0; /* pure black text */
 
     --card: 255 255 255; /* pure white cards */
-    --card-foreground: 15 23 42;
+    --card-foreground: 0 0 0; /* black text on cards */
 
     --popover: 255 255 255;
-    --popover-foreground: 15 23 42;
+    --popover-foreground: 0 0 0;
 
-    --primary: 15 23 42; /* 0f172a - sophisticated dark */
-    --primary-foreground: 248 250 252;
+    --primary: 0 0 0; /* pure black primary */
+    --primary-foreground: 255 255 255; /* white text on black */
 
-    --secondary: 248 250 252; /* soft background */
-    --secondary-foreground: 15 23 42;
+    --secondary: 245 245 245; /* light gray background */
+    --secondary-foreground: 0 0 0; /* black text */
 
-    --muted: 226 232 240; /* e2e8f0 - subtle gray */
-    --muted-foreground: 100 116 139; /* 64748b */
+    --muted: 229 229 229; /* medium gray */
+    --muted-foreground: 115 115 115; /* dark gray text */
 
-    --accent: 217 119 6; /* d97706 - warm amber */
-    --accent-foreground: 255 255 255;
+    --accent: 255 255 255; /* white accent */
+    --accent-foreground: 0 0 0; /* black text on white */
 
     --destructive: 239 68 68;
     --destructive-foreground: 255 255 255;
 
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 217 119 6; /* accent ring */
+    --border: 229 229 229; /* light gray borders */
+    --input: 229 229 229; /* light gray inputs */
+    --ring: 0 0 0; /* black focus ring */
 
-    /* Luxury gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(15 23 42) 0%, hsl(30 27 48) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(217 119 6) 0%, hsl(245 101 10) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(248 250 252) 0%, hsl(241 245 249) 100%);
+    /* Black and white gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 20%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(0 0% 90%) 100%);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
 
-    /* Luxury shadows */
-    --shadow-luxury: 0 25px 50px -12px hsl(15 23 42 / 0.25);
-    --shadow-elegant: 0 10px 30px -10px hsl(217 119 6 / 0.3);
-    --shadow-soft: 0 4px 20px -4px hsl(15 23 42 / 0.1);
+    /* Black and white shadows */
+    --shadow-luxury: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.3);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.1);
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 0 0 0; /* pure black background */
+    --foreground: 255 255 255; /* white text */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0 0; /* black cards */
+    --card-foreground: 255 255 255; /* white text on cards */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0 0;
+    --popover-foreground: 255 255 255;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 255 255 255; /* white primary in dark mode */
+    --primary-foreground: 0 0 0; /* black text on white */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 38 38 38; /* dark gray */
+    --secondary-foreground: 255 255 255;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 64 64 64; /* medium gray */
+    --muted-foreground: 163 163 163; /* light gray text */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0 0; /* black accent in dark mode */
+    --accent-foreground: 255 255 255;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 255 255 255;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 64 64 64; /* dark gray borders */
+    --input: 64 64 64;
+    --ring: 255 255 255; /* white focus ring */
+
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -120,7 +114,7 @@
 }
 
 @layer components {
-  /* Luxury utility classes */
+  /* Black and white utility classes */
   .luxury-shadow {
     box-shadow: var(--shadow-luxury);
   }
@@ -145,13 +139,13 @@
     background: var(--gradient-subtle);
   }
 
-  /* Luxury button variants */
+  /* Black and white button variants */
   .btn-luxury {
     @apply bg-primary text-primary-foreground px-8 py-4 rounded-xl font-medium tracking-wide transition-all duration-300 luxury-shadow hover:shadow-xl hover:-translate-y-1;
   }
 
   .btn-accent {
-    @apply bg-accent text-accent-foreground px-8 py-4 rounded-xl font-medium tracking-wide transition-all duration-300 elegant-shadow hover:shadow-xl hover:-translate-y-1;
+    @apply bg-accent text-accent-foreground px-8 py-4 rounded-xl font-medium tracking-wide transition-all duration-300 elegant-shadow hover:shadow-xl hover:-translate-y-1 border border-primary;
   }
 
   .btn-ghost {

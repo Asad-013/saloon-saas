@@ -25,7 +25,7 @@ const Navigation = () => {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-accent rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">L</span>
             </div>
             <div>
@@ -42,8 +42,8 @@ const Navigation = () => {
                 to={link.href}
                 className={`text-sm font-medium transition-colors duration-200 ${
                   isActive(link.href)
-                    ? 'text-accent border-b-2 border-accent pb-1'
-                    : 'text-foreground hover:text-accent'
+                    ? 'text-primary border-b-2 border-primary pb-1'
+                    : 'text-foreground hover:text-primary'
                 }`}
               >
                 {link.label}
@@ -72,7 +72,7 @@ const Navigation = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-foreground hover:text-accent transition-colors"
+              className="text-foreground hover:text-primary transition-colors"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -90,8 +90,8 @@ const Navigation = () => {
                   onClick={() => setIsOpen(false)}
                   className={`text-sm font-medium py-2 transition-colors duration-200 ${
                     isActive(link.href)
-                      ? 'text-accent border-l-4 border-accent pl-4'
-                      : 'text-foreground hover:text-accent'
+                      ? 'text-primary border-l-4 border-primary pl-4'
+                      : 'text-foreground hover:text-primary'
                   }`}
                 >
                   {link.label}
