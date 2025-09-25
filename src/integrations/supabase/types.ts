@@ -14,22 +14,306 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
-    }
+      bookings: {
+        Row: {
+          id: string;
+          user_id: string;
+          service_id: string;
+          booking_date: string;
+          booking_time: string;
+          notes: string | null;
+          status: "pending" | "confirmed" | "cancelled" | "completed";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          service_id: string;
+          booking_date: string;
+          booking_time: string;
+          notes?: string | null;
+          status?: "pending" | "confirmed" | "cancelled" | "completed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          service_id?: string;
+          booking_date?: string;
+          booking_time?: string;
+          notes?: string | null;
+          status?: "pending" | "confirmed" | "cancelled" | "completed";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "bookings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          booking_id: string;
+          type: "email" | "sms" | "in_app";
+          subject: string | null;
+          body: string;
+          sent_at: string;
+          status: string;
+          external_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          booking_id: string;
+          type: "email" | "sms" | "in_app";
+          subject?: string | null;
+          body: string;
+          sent_at?: string;
+          status?: string;
+          external_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          booking_id?: string;
+          type?: "email" | "sms" | "in_app";
+          subject?: string | null;
+          body?: string;
+          sent_at?: string;
+          status?: string;
+          external_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notifications_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      profiles: {
+        Row: {
+          id: string;
+          full_name: string | null;
+          phone_number: string | null;
+          role: "user" | "admin";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          full_name?: string | null;
+          phone_number?: string | null;
+          role?: "user" | "admin";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          full_name?: string | null;
+          phone_number?: string | null;
+          role?: "user" | "admin";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      services: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          price: string;
+          duration: number;
+          image_url: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          price: string;
+          duration: number;
+          image_url?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          price?: string;
+          duration?: number;
+          image_url?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      staff: {
+        Row: {
+          id: string;
+          name: string;
+          role: string;
+          bio: string | null;
+          image_url: string | null;
+          is_active: boolean;
+          working_hours: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          role: string;
+          bio?: string | null;
+          image_url?: string | null;
+          is_active?: boolean;
+          working_hours?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          role?: string;
+          bio?: string | null;
+          image_url?: string | null;
+          is_active?: boolean;
+          working_hours?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      staff_services: {
+        Row: {
+          staff_id: string;
+          service_id: string;
+          created_at: string;
+        };
+        Insert: {
+          staff_id: string;
+          service_id: string;
+          created_at?: string;
+        };
+        Update: {
+          staff_id?: string;
+          service_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staff_services_service_id_fkey";
+            columns: ["service_id"];
+            isOneToOne: false;
+            referencedRelation: "services";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "staff_services_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "staff";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      time_slots: {
+        Row: {
+          id: string;
+          staff_id: string;
+          date: string;
+          time: string;
+          is_available: boolean;
+          booking_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          staff_id: string;
+          date: string;
+          time: string;
+          is_available?: boolean;
+          booking_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          staff_id?: string;
+          date?: string;
+          time?: string;
+          is_available?: boolean;
+          booking_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "time_slots_booking_id_fkey";
+            columns: ["booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "time_slots_staff_id_fkey";
+            columns: ["staff_id"];
+            isOneToOne: false;
+            referencedRelation: "staff";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+    };
     Views: {
       [_ in never]: never
-    }
+    };
     Functions: {
       [_ in never]: never
-    }
+    };
     Enums: {
-      [_ in never]: never
-    }
+      booking_status: "pending" | "confirmed" | "cancelled" | "completed";
+      notification_type: "email" | "sms" | "in_app";
+      user_role: "user" | "admin";
+    };
     CompositeTypes: {
       [_ in never]: never
-    }
-  }
-}
+    };
+  };
+};
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 

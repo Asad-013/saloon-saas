@@ -9,6 +9,11 @@ import Footer from '@/components/Footer';
 import haircutImage from '@/assets/service-haircut.jpg';
 import facialImage from '@/assets/service-facial.jpg';
 import bridalImage from '@/assets/service-bridal.jpg';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/components/ui/use-toast';
+import { useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
 
 const Booking = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -22,58 +27,137 @@ const Booking = () => {
     customerEmail: '',
     notes: ''
   });
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [services, setServices] = useState<any[]>([]);
+  const [allStaff, setAllStaff] = useState<any[]>([]);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<any[]>([]);
 
-  const services = [
-    {
-      id: 1,
-      title: 'Classic Haircut',
-      price: 40,
-      duration: 45,
-      image: haircutImage
-    },
-    {
-      id: 2,
-      title: 'Signature Facial',
-      price: 60,
-      duration: 60,
-      image: facialImage
-    },
-    {
-      id: 3,
-      title: 'Bridal Makeup',
-      price: 150,
-      duration: 180,
-      image: bridalImage
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user || null);
+      if (user) {
+        setBookingData(prev => ({
+          ...prev,
+          customerEmail: user.email || '',
+          customerName: user.user_metadata.full_name || '',
+          customerPhone: user.user_metadata.phone_number || '',
+        }));
+      }
+    };
+    getSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) {
+        setBookingData(prev => ({
+          ...prev,
+          customerEmail: session.user.email || '',
+          customerName: session.user.user_metadata.full_name || '',
+          customerPhone: session.user.user_metadata.phone_number || '',
+        }));
+      } else {
+        setBookingData(prev => ({
+          ...prev,
+          customerEmail: '',
+          customerName: '',
+          customerPhone: '',
+        }));
+      }
+    });
+
+    const fetchServicesAndStaff = async () => {
+      // Fetch active services
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('services')
+        .select('id, name, description, price, duration, image_url')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      if (servicesError) {
+        toast({
+          title: "Error fetching services",
+          description: servicesError.message,
+          variant: "destructive",
+        });
+        setServices([]);
+      } else {
+        setServices(servicesData || []);
+      }
+
+      // Fetch active staff with their assigned services
+      const { data: staffData, error: staffError } = await supabase
+        .from('staff')
+        .select('id, name, role, image_url, staff_services(service_id)')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+
+      if (staffError) {
+        toast({
+          title: "Error fetching staff",
+          description: staffError.message,
+          variant: "destructive",
+        });
+        setAllStaff([]);
+      } else {
+        setAllStaff(staffData || []);
+      }
+    };
+
+    fetchServicesAndStaff();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
+  const fetchAvailableTimeSlots = async (staffId: string, date: string) => {
+    const { data, error } = await supabase
+      .from('time_slots')
+      .select('id, time')
+      .eq('staff_id', staffId)
+      .eq('date', date)
+      .eq('is_available', true)
+      .is('booking_id', null)
+      .order('time', { ascending: true });
+
+    if (error) {
+      console.error("Error fetching available time slots:", error.message);
+      setAvailableTimeSlots([]);
+    } else {
+      setAvailableTimeSlots(data || []);
     }
-  ];
+  };
 
-  const staff = [
-    { id: 1, name: 'Asha Rahman', role: 'Senior Stylist', image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face' },
-    { id: 2, name: 'Milan Chowdhury', role: 'Makeup Artist', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face' },
-    { id: 'any', name: 'Any Available', role: 'First Available Stylist', image: null }
-  ];
-
-  const timeSlots = [
-    '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '12:00', '12:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30'
-  ];
+  // Filter staff based on selected service
+  const filteredStaff = bookingData.service
+    ? allStaff.filter(staffMember =>
+        staffMember.staff_services.some((ss: { service_id: string; }) => ss.service_id === bookingData.service?.id)
+      )
+    : allStaff;
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 5));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const handleServiceSelect = (service: any) => {
-    setBookingData(prev => ({ ...prev, service }));
+    setBookingData(prev => ({ ...prev, service, staff: null, date: '', time: '' })); // Reset staff/date/time when service changes
     nextStep();
   };
 
   const handleStaffSelect = (selectedStaff: any) => {
-    setBookingData(prev => ({ ...prev, staff: selectedStaff }));
+    setBookingData(prev => ({ ...prev, staff: selectedStaff, date: '', time: '' })); // Reset date/time when staff changes
     nextStep();
   };
 
-  const handleDateSelect = (date: string) => {
-    setBookingData(prev => ({ ...prev, date }));
+  const handleDateSelect = async (date: string) => {
+    setBookingData(prev => ({ ...prev, date, time: '' })); // Reset time when date changes
+    if (bookingData.staff?.id) {
+      await fetchAvailableTimeSlots(bookingData.staff.id, date);
+    }
   };
 
   const handleTimeSelect = (time: string) => {
@@ -86,10 +170,84 @@ const Booking = () => {
     nextStep();
   };
 
-  const handleBookingConfirm = () => {
-    // In a real app, this would send the booking to the API
-    console.log('Booking confirmed:', bookingData);
-    alert('Booking confirmed! You will receive a confirmation email shortly.');
+  const handleBookingConfirm = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to book a service.",
+        variant: "destructive",
+      });
+      navigate('/login');
+      return;
+    }
+
+    setLoading(true);
+    const { service, staff, date, time, notes, customerName, customerEmail, customerPhone } = bookingData;
+
+    if (!service || !staff || !date || !time) {
+      toast({
+        title: "Error",
+        description: "Please select a service, staff, date, and time.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Find the specific time slot ID that the user selected
+      const selectedTimeSlot = availableTimeSlots.find(slot => slot.time === time);
+      if (!selectedTimeSlot) {
+        throw new Error("Selected time slot is no longer available.");
+      }
+
+      // Insert the booking
+      const { data: bookingInsertData, error: bookingError } = await supabase
+        .from('bookings')
+        .insert({
+          user_id: user.id,
+          service_id: service.id,
+          staff_id: staff.id,
+          booking_date: date,
+          booking_time: time,
+          notes: notes || null,
+          status: 'pending',
+          customer_name: customerName,
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+        })
+        .select()
+        .single();
+
+      if (bookingError || !bookingInsertData) {
+        throw bookingError || new Error("Failed to create booking.");
+      }
+
+      // Mark the time slot as booked
+      const { error: timeSlotUpdateError } = await supabase
+        .from('time_slots')
+        .update({ is_available: false, booking_id: bookingInsertData.id })
+        .eq('id', selectedTimeSlot.id);
+
+      if (timeSlotUpdateError) {
+        console.error("Error updating time slot status:", timeSlotUpdateError.message);
+        // Optionally, you might want to revert the booking if time slot update fails
+      }
+
+      toast({
+        title: "Booking Confirmed!",
+        description: "You will receive a confirmation email shortly.",
+      });
+      navigate('/profile'); // Redirect to profile to see bookings
+    } catch (error: any) {
+      toast({
+        title: "Booking Failed",
+        description: error.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getCurrentDate = () => {
@@ -100,12 +258,12 @@ const Booking = () => {
   const getNextWeekDates = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 30; i++) { // Next 30 days for booking
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push({
         date: date.toISOString().split('T')[0],
-        display: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+        display: format(date, 'PPP')
       });
     }
     return dates;
@@ -142,22 +300,26 @@ const Booking = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-3 gap-6">
-                  {services.map((service) => (
-                    <div
-                      key={service.id}
-                      onClick={() => handleServiceSelect(service)}
-                      className="cursor-pointer group bg-background p-6 rounded-xl border hover:border-accent hover:luxury-shadow transition-all duration-300"
-                    >
-                      <img src={service.image} alt={service.title} className="w-full h-32 object-cover rounded-lg mb-4" />
-                      <h3 className="font-playfair font-bold text-lg mb-2 group-hover:text-accent transition-colors">
-                        {service.title}
-                      </h3>
-                      <div className="flex justify-between items-center">
-                        <span className="text-2xl font-bold text-accent">৳{service.price}</span>
-                        <span className="text-sm text-muted-foreground">{service.duration} mins</span>
+                  {services.length === 0 ? (
+                    <p className="text-muted-foreground col-span-3">No active services available. Please check back later.</p>
+                  ) : (
+                    services.map((service) => (
+                      <div
+                        key={service.id}
+                        onClick={() => handleServiceSelect(service)}
+                        className="cursor-pointer group bg-background p-6 rounded-xl border hover:border-accent hover:luxury-shadow transition-all duration-300"
+                      >
+                        <img src={service.image_url || haircutImage} alt={service.name} className="w-full h-32 object-cover rounded-lg mb-4" />
+                        <h3 className="font-playfair font-bold text-lg mb-2 group-hover:text-accent transition-colors">
+                          {service.name}
+                        </h3>
+                        <div className="flex justify-between items-center">
+                          <span className="text-2xl font-bold text-accent">৳{service.price}</span>
+                          <span className="text-sm text-muted-foreground">{service.duration} mins</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -174,29 +336,35 @@ const Booking = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-3 gap-6">
-                  {staff.map((member) => (
-                    <div
-                      key={member.id}
-                      onClick={() => handleStaffSelect(member)}
-                      className="cursor-pointer group bg-background p-6 rounded-xl border hover:border-accent hover:luxury-shadow transition-all duration-300 text-center"
-                    >
-                      {member.image ? (
-                        <img 
-                          src={member.image} 
-                          alt={member.name} 
-                          className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
-                        />
-                      ) : (
-                        <div className="w-20 h-20 rounded-full mx-auto mb-4 bg-accent/10 flex items-center justify-center">
-                          <User className="w-8 h-8 text-accent" />
-                        </div>
-                      )}
-                      <h3 className="font-semibold text-lg mb-1 group-hover:text-accent transition-colors">
-                        {member.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">{member.role}</p>
-                    </div>
-                  ))}
+                  {filteredStaff.length === 0 ? (
+                    <p className="text-muted-foreground col-span-3">No staff available for the selected service.</p>
+                  ) : (
+                    filteredStaff.map((staffMember) => (
+                      <div
+                        key={staffMember.id}
+                        onClick={() => handleStaffSelect(staffMember)}
+                        className={`cursor-pointer group bg-background p-6 rounded-xl border hover:border-accent hover:luxury-shadow transition-all duration-300 text-center ${
+                          bookingData.staff?.id === staffMember.id ? 'border-accent shadow-md' : ''
+                        }`}
+                      >
+                        {staffMember.image_url ? (
+                          <img 
+                            src={staffMember.image_url} 
+                            alt={staffMember.name} 
+                            className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-full mx-auto mb-4 bg-accent/10 flex items-center justify-center">
+                            <User className="w-8 h-8 text-accent" />
+                          </div>
+                        )}
+                        <h3 className="font-semibold text-lg mb-1 group-hover:text-accent transition-colors">
+                          {staffMember.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">{staffMember.role}</p>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div className="flex justify-between mt-6">
                   <Button onClick={prevStep} variant="outline">
@@ -237,20 +405,28 @@ const Booking = () => {
                   </div>
                 </div>
 
-                {bookingData.date && (
+                {bookingData.date && bookingData.staff && ( // Only show times if date and staff are selected
                   <div>
-                    <h3 className="font-semibold mb-4">Available Times</h3>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                      {timeSlots.map((time) => (
-                        <button
-                          key={time}
-                          onClick={() => handleTimeSelect(time)}
-                          className="p-3 rounded-lg border text-sm font-medium bg-background hover:border-accent hover:text-accent transition-all"
-                        >
-                          {time}
-                        </button>
-                      ))}
-                    </div>
+                    <h3 className="font-semibold mb-4">Available Times for {bookingData.staff.name} on {format(parseISO(bookingData.date), 'PPP')}</h3>
+                    {availableTimeSlots.length === 0 ? (
+                      <p className="text-muted-foreground">No available time slots for this date and staff member.</p>
+                    ) : (
+                      <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                        {availableTimeSlots.map((slot) => (
+                          <button
+                            key={slot.id}
+                            onClick={() => handleTimeSelect(slot.time)}
+                            className={`p-3 rounded-lg border text-sm font-medium transition-all ${
+                              bookingData.time === slot.time
+                                ? 'bg-accent text-white border-accent'
+                                : 'bg-background hover:border-accent hover:text-accent'
+                            }`}
+                          >
+                            {slot.time}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -301,6 +477,7 @@ const Booking = () => {
                       value={bookingData.customerEmail}
                       onChange={(e) => setBookingData(prev => ({ ...prev, customerEmail: e.target.value }))}
                       placeholder="your.email@example.com"
+                      disabled={!!user} // Disable email input if user is logged in
                     />
                   </div>
                   <div>
@@ -339,7 +516,7 @@ const Booking = () => {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span>Service:</span>
-                      <span className="font-medium">{bookingData.service?.title}</span>
+                      <span className="font-medium">{bookingData.service?.name}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Stylist:</span>
@@ -347,7 +524,7 @@ const Booking = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Date:</span>
-                      <span className="font-medium">{new Date(bookingData.date).toLocaleDateString()}</span>
+                      <span className="font-medium">{format(parseISO(bookingData.date), 'PPP')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Time:</span>
@@ -368,19 +545,18 @@ const Booking = () => {
 
                 <div className="bg-accent/5 p-4 rounded-xl mb-6">
                   <p className="text-sm text-muted-foreground">
-                    <strong>Please note:</strong> Your appointment is subject to confirmation. You will receive a confirmation email within 2 hours. 
+                    <strong>Please note:</strong> Your appointment is subject to confirmation. You will receive a confirmation email shortly. 
                     For any changes or cancellations, please call us at +880 1XXXXXXXXX at least 24 hours in advance.
                   </p>
                 </div>
 
                 <div className="flex justify-between">
-                  <Button onClick={prevStep} variant="outline">
+                  <Button onClick={prevStep} variant="outline" disabled={loading}>
                     <ArrowLeft className="mr-2 w-4 h-4" />
                     Back
                   </Button>
-                  <Button onClick={handleBookingConfirm} className="btn-accent">
-                    <Check className="mr-2 w-4 h-4" />
-                    Confirm Booking
+                  <Button onClick={handleBookingConfirm} className="btn-accent" disabled={loading}>
+                    {loading ? 'Confirming...' : <><Check className="mr-2 w-4 h-4" /> Confirm Booking</>}
                   </Button>
                 </div>
               </CardContent>

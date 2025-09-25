@@ -1,18 +1,68 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, Clock } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Phone, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useEffect } from 'react';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<'user' | 'admin' | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchUserAndRole = async () => {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      setUser(authUser || null);
+
+      if (authUser) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', authUser.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user role:", error.message);
+          setUserRole(null);
+        } else {
+          setUserRole(profile?.role || 'user');
+        }
+      } else {
+        setUserRole(null);
+      }
+    };
+
+    fetchUserAndRole();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) {
+        // Re-fetch role on auth state change
+        fetchUserAndRole();
+      } else {
+        setUserRole(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]); // Added navigate to dependencies as it's used in handleLogout, though not directly in this useEffect
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/login');
+  };
 
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/services', label: 'Services' },
     { href: '/gallery', label: 'Gallery' },
     { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' }
+    { href: '/contact', label: 'Contact' },
   ];
 
   const isActive = (href: string) => {
@@ -49,6 +99,21 @@ const Navigation = () => {
                 {link.label}
               </Link>
             ))}
+            {userRole === 'admin' && (
+              <Link to="/admin" className={`text-sm font-medium transition-colors duration-200 ${isActive('/admin') ? 'text-primary border-b-2 border-primary pb-1' : 'text-foreground hover:text-primary'}`}>Admin</Link>
+            )}
+            {user ? (
+              <>
+                <Link to="/profile" className={`text-sm font-medium transition-colors duration-200 ${isActive('/profile') ? 'text-primary border-b-2 border-primary pb-1' : 'text-foreground hover:text-primary'}`}>Profile</Link>
+                <Button onClick={handleLogout} className="btn-secondary text-sm px-4 py-2">
+                  Logout <LogOut className="ml-2 w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <Link to="/login">
+                <Button className="btn-accent">Login</Button>
+              </Link>
+            )}
           </div>
 
           {/* Contact Info & CTA */}
@@ -59,13 +124,14 @@ const Navigation = () => {
                 <span>+880 1XXXXXXXXX</span>
               </div>
               <div className="flex items-center space-x-1 text-muted-foreground">
-                <Clock size={16} />
                 <span>9AM - 8PM</span>
               </div>
             </div>
-            <Link to="/booking">
-              <Button className="btn-accent">Book Now</Button>
-            </Link>
+            {!user && (
+              <Link to="/booking">
+                <Button className="btn-accent">Book Now</Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -97,20 +163,36 @@ const Navigation = () => {
                   {link.label}
                 </Link>
               ))}
+              {userRole === 'admin' && (
+                <Link to="/admin" onClick={() => setIsOpen(false)} className={`block text-sm font-medium py-2 transition-colors duration-200 ${isActive('/admin') ? 'text-primary border-l-4 border-primary pl-4' : 'text-foreground hover:text-primary'}`}>Admin</Link>
+              )}
               <div className="pt-4 border-t border-border">
+                {user ? (
+                  <>
+                    <Link to="/profile" onClick={() => setIsOpen(false)} className={`block text-sm font-medium py-2 transition-colors duration-200 ${isActive('/profile') ? 'text-primary border-l-4 border-primary pl-4' : 'text-foreground hover:text-primary'}`}>Profile</Link>
+                    <Button onClick={handleLogout} className="btn-secondary w-full mb-4">
+                      Logout <LogOut className="ml-2 w-4 h-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    <Button className="btn-accent w-full mb-4">Login</Button>
+                  </Link>
+                )}
                 <div className="flex flex-col space-y-2 text-sm text-muted-foreground mb-4">
                   <div className="flex items-center space-x-2">
                     <Phone size={16} />
                     <span>+880 1XXXXXXXXX</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Clock size={16} />
                     <span>Mon-Fri: 9AM-8PM, Sat: 10AM-6PM</span>
                   </div>
                 </div>
-                <Link to="/booking" onClick={() => setIsOpen(false)}>
-                  <Button className="btn-accent w-full">Book Appointment</Button>
-                </Link>
+                {!user && (
+                  <Link to="/booking" onClick={() => setIsOpen(false)}>
+                    <Button className="btn-accent w-full">Book Appointment</Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
