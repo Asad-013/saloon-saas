@@ -16,304 +16,304 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
-          id: string;
-          user_id: string;
-          service_id: string;
-          booking_date: string;
-          booking_time: string;
-          notes: string | null;
-          status: "pending" | "confirmed" | "cancelled" | "completed";
-          created_at: string;
-          updated_at: string;
-        };
+          booking_date: string
+          booking_time: string
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id: string
+          notes: string | null
+          service_id: string
+          staff_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          service_id: string;
-          booking_date: string;
-          booking_time: string;
-          notes?: string | null;
-          status?: "pending" | "confirmed" | "cancelled" | "completed";
-          created_at?: string;
-          updated_at?: string;
-        };
+          booking_date: string
+          booking_time: string
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          id?: string
+          notes?: string | null
+          service_id: string
+          staff_id: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          service_id?: string;
-          booking_date?: string;
-          booking_time?: string;
-          notes?: string | null;
-          status?: "pending" | "confirmed" | "cancelled" | "completed";
-          created_at?: string;
-          updated_at?: string;
-        };
+          booking_date?: string
+          booking_time?: string
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          id?: string
+          notes?: string | null
+          service_id?: string
+          staff_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          updated_at?: string
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "bookings_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+            foreignKeyName: "bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
-          id: string;
-          user_id: string;
-          booking_id: string;
-          type: "email" | "sms" | "in_app";
-          subject: string | null;
-          body: string;
-          sent_at: string;
-          status: string;
-          external_id: string | null;
-          created_at: string;
-        };
+          body: string
+          booking_id: string
+          created_at: string
+          external_id: string | null
+          id: string
+          sent_at: string
+          status: string
+          subject: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          booking_id: string;
-          type: "email" | "sms" | "in_app";
-          subject?: string | null;
-          body: string;
-          sent_at?: string;
-          status?: string;
-          external_id?: string | null;
-          created_at?: string;
-        };
+          body: string
+          booking_id: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          subject?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          booking_id?: string;
-          type?: "email" | "sms" | "in_app";
-          subject?: string | null;
-          body?: string;
-          sent_at?: string;
-          status?: string;
-          external_id?: string | null;
-          created_at?: string;
-        };
+          body?: string
+          booking_id?: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          sent_at?: string
+          status?: string
+          subject?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "notifications_booking_id_fkey";
-            columns: ["booking_id"];
-            isOneToOne: false;
-            referencedRelation: "bookings";
-            referencedColumns: ["id"];
+            foreignKeyName: "notifications_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "notifications_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+        ]
+      }
       profiles: {
         Row: {
-          id: string;
-          full_name: string | null;
-          phone_number: string | null;
-          role: "user" | "admin";
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string
+          full_name: string | null
+          id: string
+          phone_number: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
         Insert: {
-          id: string;
-          full_name?: string | null;
-          phone_number?: string | null;
-          role?: "user" | "admin";
-          created_at?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          full_name?: string | null
+          id: string
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
         Update: {
-          id?: string;
-          full_name?: string | null;
-          phone_number?: string | null;
-          role?: "user" | "admin";
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone_number?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       services: {
         Row: {
-          id: string;
-          name: string;
-          description: string | null;
-          price: string;
-          duration: number;
-          image_url: string | null;
-          is_active: boolean;
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string
+          description: string | null
+          duration: number
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          price: string
+          updated_at: string
+        }
         Insert: {
-          id?: string;
-          name: string;
-          description?: string | null;
-          price: string;
-          duration: number;
-          image_url?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          description?: string | null
+          duration: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          price: string
+          updated_at?: string
+        }
         Update: {
-          id?: string;
-          name?: string;
-          description?: string | null;
-          price?: string;
-          duration?: number;
-          image_url?: string | null;
-          is_active?: boolean;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          description?: string | null
+          duration?: number
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          price?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       staff: {
         Row: {
-          id: string;
-          name: string;
-          role: string;
-          bio: string | null;
-          image_url: string | null;
-          is_active: boolean;
-          working_hours: Json | null;
-          created_at: string;
-          updated_at: string;
-        };
+          bio: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          role: string
+          updated_at: string
+          working_hours: Json | null
+        }
         Insert: {
-          id?: string;
-          name: string;
-          role: string;
-          bio?: string | null;
-          image_url?: string | null;
-          is_active?: boolean;
-          working_hours?: Json | null;
-          created_at?: string;
-          updated_at?: string;
-        };
+          bio?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          role: string
+          updated_at?: string
+          working_hours?: Json | null
+        }
         Update: {
-          id?: string;
-          name?: string;
-          role?: string;
-          bio?: string | null;
-          image_url?: string | null;
-          is_active?: boolean;
-          working_hours?: Json | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          bio?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          role?: string
+          updated_at?: string
+          working_hours?: Json | null
+        }
+        Relationships: []
+      }
       staff_services: {
         Row: {
-          staff_id: string;
-          service_id: string;
-          created_at: string;
-        };
+          created_at: string
+          service_id: string
+          staff_id: string
+        }
         Insert: {
-          staff_id: string;
-          service_id: string;
-          created_at?: string;
-        };
+          created_at?: string
+          service_id: string
+          staff_id: string
+        }
         Update: {
-          staff_id?: string;
-          service_id?: string;
-          created_at?: string;
-        };
+          created_at?: string
+          service_id?: string
+          staff_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "staff_services_service_id_fkey";
-            columns: ["service_id"];
-            isOneToOne: false;
-            referencedRelation: "services";
-            referencedColumns: ["id"];
+            foreignKeyName: "staff_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "staff_services_staff_id_fkey";
-            columns: ["staff_id"];
-            isOneToOne: false;
-            referencedRelation: "staff";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
+            foreignKeyName: "staff_services_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_slots: {
         Row: {
-          id: string;
-          staff_id: string;
-          date: string;
-          time: string;
-          is_available: boolean;
-          booking_id: string | null;
-          created_at: string;
-        };
+          booking_id: string | null
+          created_at: string
+          date: string
+          id: string
+          is_available: boolean
+          staff_id: string
+          time: string
+        }
         Insert: {
-          id?: string;
-          staff_id: string;
-          date: string;
-          time: string;
-          is_available?: boolean;
-          booking_id?: string | null;
-          created_at?: string;
-        };
+          booking_id?: string | null
+          created_at?: string
+          date: string
+          id?: string
+          is_available?: boolean
+          staff_id: string
+          time: string
+        }
         Update: {
-          id?: string;
-          staff_id?: string;
-          date?: string;
-          time?: string;
-          is_available?: boolean;
-          booking_id?: string | null;
-          created_at?: string;
-        };
+          booking_id?: string | null
+          created_at?: string
+          date?: string
+          id?: string
+          is_available?: boolean
+          staff_id?: string
+          time?: string
+        }
         Relationships: [
           {
-            foreignKeyName: "time_slots_booking_id_fkey";
-            columns: ["booking_id"];
-            isOneToOne: false;
-            referencedRelation: "bookings";
-            referencedColumns: ["id"];
+            foreignKeyName: "time_slots_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "time_slots_staff_id_fkey";
-            columns: ["staff_id"];
-            isOneToOne: false;
-            referencedRelation: "staff";
-            referencedColumns: ["id"];
-          }
-        ];
-      };
-    };
+        ]
+      }
+    }
     Views: {
       [_ in never]: never
-    };
+    }
     Functions: {
-      [_ in never]: never
-    };
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+    }
     Enums: {
-      booking_status: "pending" | "confirmed" | "cancelled" | "completed";
-      notification_type: "email" | "sms" | "in_app";
-      user_role: "user" | "admin";
-    };
+      booking_status: "pending" | "confirmed" | "cancelled" | "completed"
+      notification_type: "email" | "sms" | "in_app"
+      user_role: "user" | "admin"
+    }
     CompositeTypes: {
       [_ in never]: never
-    };
-  };
-};
+    }
+  }
+}
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
@@ -434,6 +434,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      booking_status: ["pending", "confirmed", "cancelled", "completed"],
+      notification_type: ["email", "sms", "in_app"],
+      user_role: ["user", "admin"],
+    },
   },
 } as const
