@@ -25,6 +25,7 @@ export type Database = {
           status: "pending" | "confirmed" | "cancelled" | "completed";
           created_at: string;
           updated_at: string;
+          customer_name: string | null;
         };
         Insert: {
           id?: string;
@@ -36,6 +37,7 @@ export type Database = {
           status?: "pending" | "confirmed" | "cancelled" | "completed";
           created_at?: string;
           updated_at?: string;
+          customer_name?: string | null;
         };
         Update: {
           id?: string;
@@ -47,6 +49,7 @@ export type Database = {
           status?: "pending" | "confirmed" | "cancelled" | "completed";
           created_at?: string;
           updated_at?: string;
+          customer_name?: string | null;
         };
         Relationships: [
           {

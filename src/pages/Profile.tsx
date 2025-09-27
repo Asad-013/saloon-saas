@@ -31,7 +31,7 @@ const Profile = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, services(name)')
         .eq('user_id', userId)
         .order('booking_date', { ascending: false });
 
@@ -97,7 +97,7 @@ const Profile = () => {
                 <div className="space-y-4">
                   {bookings.map((booking) => (
                     <div key={booking.id} className="border p-4 rounded-lg bg-card">
-                      <h4 className="font-semibold text-lg text-primary">Service: {booking.service_id}</h4>
+                      <h4 className="font-semibold text-lg text-primary">Service: {booking.services?.name || 'N/A'}</h4>
                       <p className="text-muted-foreground flex items-center"><CalendarIcon className="w-4 h-4 mr-2" />Date: {format(new Date(booking.booking_date), "PPP")}</p>
                       <p className="text-muted-foreground flex items-center"><Clock className="w-4 h-4 mr-2" />Time: {booking.booking_time}</p>
                       <p className="text-muted-foreground">Status: {booking.status}</p>

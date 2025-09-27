@@ -51,6 +51,8 @@ const AdminDashboard = () => {
   });
   const [editingTimeSlotId, setEditingTimeSlotId] = useState<string | null>(null);
 
+  const [bookings, setBookings] = useState<any[]>([]);
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -148,6 +150,19 @@ const AdminDashboard = () => {
         setTimeSlots(timeSlotsData || []);
       }
 
+      // Fetch bookings
+      const { data: bookingsData, error: bookingsError } = await supabase
+        .from('bookings')
+        .select('*, services(name), staff(name)') // Fetch related service and staff names
+        .order('created_at', { ascending: false });
+
+      if (bookingsError) {
+        console.error("Error fetching bookings:", bookingsError.message);
+        setBookings([]);
+      } else {
+        setBookings(bookingsData || []);
+      }
+
       setLoading(false);
     };
     checkUserRoleAndFetchData();
@@ -161,7 +176,7 @@ const AdminDashboard = () => {
       .insert([{
         name: newService.name,
         description: newService.description,
-        price: parseFloat(newService.price),
+        price: newService.price, // price is already a string
         duration: parseInt(newService.duration),
         image_url: newService.image_url,
         is_active: newService.is_active,
@@ -195,7 +210,7 @@ const AdminDashboard = () => {
       .update({
         name: newService.name,
         description: newService.description,
-        price: parseFloat(newService.price),
+        price: newService.price, // price is already a string
         duration: parseInt(newService.duration),
         image_url: newService.image_url,
         is_active: newService.is_active,
@@ -253,7 +268,7 @@ const AdminDashboard = () => {
     setNewService({
       name: service.name,
       description: service.description || '',
-      price: service.price.toString(),
+      price: service.price, // service.price is already a string based on Supabase type
       duration: service.duration.toString(),
       image_url: service.image_url || '',
       is_active: service.is_active,
@@ -535,6 +550,31 @@ const AdminDashboard = () => {
     return dates;
   };
 
+  const handleUpdateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status })
+      .eq('id', bookingId);
+
+    if (error) {
+      toast({
+        title: "Error updating booking status",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Booking Status Updated",
+        description: `Booking status updated to ${status}.`,
+      });
+      // Re-fetch bookings to update the list
+      const { data: bookingsData, error: fetchError } = await supabase.from('bookings').select('*, services(name), staff(name)').order('created_at', { ascending: false });
+      if (!fetchError) setBookings(bookingsData || []);
+    }
+    setLoading(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -750,7 +790,7 @@ const AdminDashboard = () => {
                                           <Checkbox
                                             id={`staff-${staffMember.id}-service-${service.id}`}
                                             checked={isAssigned}
-                                            onCheckedChange={(checked) => handleAssignService(staffMember.id, service.id, checked)}
+                                            onCheckedChange={(checked: boolean) => handleAssignService(staffMember.id, service.id, checked)}
                                             disabled={loading}
                                           />
                                           <label
@@ -893,7 +933,38 @@ const AdminDashboard = () => {
                   <CardTitle>Manage Bookings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Booking management UI will go here.</p>
+                  {bookings.length === 0 ? (
+                    <p className="text-muted-foreground">No bookings found.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {bookings.map((booking) => (
+                        <Card key={booking.id} className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-lg">Booking for {booking.services?.name || 'N/A'}</p>
+                              <p className="text-muted-foreground">Staff: {booking.staff?.name || 'N/A'}</p>
+                              <p className="text-muted-foreground">Customer: {booking.customer_name || 'N/A'}</p>
+                              <p className="text-muted-foreground">Date: {format(parseISO(booking.booking_date), 'PPP')} at {booking.booking_time}</p>
+                              <p className="text-muted-foreground">Status: {booking.status}</p>
+                              {booking.notes && <p className="text-muted-foreground text-sm">Notes: {booking.notes}</p>}
+                            </div>
+                            <div className="flex space-x-2">
+                              {booking.status === 'pending' && (
+                                <Button variant="outline" className="btn-accent" onClick={() => handleUpdateBookingStatus(booking.id, 'confirmed')}>
+                                  Confirm
+                                </Button>
+                              )}
+                              {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                <Button variant="destructive" onClick={() => handleUpdateBookingStatus(booking.id, 'cancelled')}>
+                                  Cancel
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
