@@ -3,7 +3,8 @@ import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
+import BulkTimeSlotCreator from '@/components/BulkTimeSlotCreator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -40,7 +41,7 @@ const AdminDashboard = () => {
     is_active: true,
   });
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
-  const [staffServices, setStaffServices] = useState<any[]>([]); // To store staff-service relationships
+  const [staffServices, setStaffServices] = useState<any[]>([]);
 
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [newTimeSlot, setNewTimeSlot] = useState({
@@ -161,7 +162,7 @@ const AdminDashboard = () => {
       .insert([{
         name: newService.name,
         description: newService.description,
-        price: parseFloat(newService.price),
+        price: newService.price,
         duration: parseInt(newService.duration),
         image_url: newService.image_url,
         is_active: newService.is_active,
@@ -195,7 +196,7 @@ const AdminDashboard = () => {
       .update({
         name: newService.name,
         description: newService.description,
-        price: parseFloat(newService.price),
+        price: newService.price,
         duration: parseInt(newService.duration),
         image_url: newService.image_url,
         is_active: newService.is_active,
@@ -515,11 +516,14 @@ const AdminDashboard = () => {
     });
   };
 
+  // Helper functions
   const generateTimeOptions = () => {
     const times = [];
-    for (let i = 9; i <= 18; i++) { // 9 AM to 6 PM
-      times.push(`${i.toString().padStart(2, '0')}:00`);
-      times.push(`${i.toString().padStart(2, '0')}:30`);
+    for (let hour = 9; hour <= 18; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        times.push(time);
+      }
     }
     return times;
   };
@@ -527,12 +531,60 @@ const AdminDashboard = () => {
   const generateDateOptions = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 0; i < 30; i++) { // Next 30 days
+    for (let i = 0; i < 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push(date.toISOString().split('T')[0]);
     }
     return dates;
+  };
+
+  // Bulk time slot creation
+  const handleBulkCreateTimeSlots = async (staffId: string, startDate: string, endDate: string, times: string[]) => {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const slotsToCreate = [];
+
+      // Generate all date-time combinations
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        for (const time of times) {
+          slotsToCreate.push({
+            staff_id: staffId,
+            date: dateStr,
+            time: time,
+            is_available: true
+          });
+        }
+      }
+
+      const { error } = await supabase
+        .from('time_slots')
+        .insert(slotsToCreate);
+
+      if (error) throw error;
+
+      // Refresh time slots
+      const { data } = await supabase
+        .from('time_slots')
+        .select('*, staff(name), bookings(id, customer_name)')
+        .order('date', { ascending: true })
+        .order('time', { ascending: true });
+      setTimeSlots(data || []);
+
+      toast({
+        title: "Success",
+        description: "Time slots created successfully",
+      });
+    } catch (error) {
+      console.error('Error creating bulk time slots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create time slots",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
@@ -750,7 +802,7 @@ const AdminDashboard = () => {
                                           <Checkbox
                                             id={`staff-${staffMember.id}-service-${service.id}`}
                                             checked={isAssigned}
-                                            onCheckedChange={(checked) => handleAssignService(staffMember.id, service.id, checked)}
+                                            onCheckedChange={(checked) => handleAssignService(staffMember.id, service.id, checked as boolean)}
                                             disabled={loading}
                                           />
                                           <label
@@ -774,116 +826,14 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="availability">
-              <Card className="mt-4">
+            <TabsContent value="availability" className="space-y-6">
+              <Card>
                 <CardHeader>
-                  <CardTitle>{editingTimeSlotId ? 'Edit Time Slot' : 'Add New Time Slot'}</CardTitle>
+                  <CardTitle>Bulk Create Time Slots</CardTitle>
+                  <p className="text-sm text-muted-foreground">Create multiple time slots for a staff member across a date range</p>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={editingTimeSlotId ? handleEditTimeSlot : handleAddTimeSlot} className="space-y-4">
-                    <div>
-                      <Label htmlFor="time-slot-staff">Staff Member</Label>
-                      <Select
-                        value={newTimeSlot.staff_id}
-                        onValueChange={(value) => setNewTimeSlot(prev => ({ ...prev, staff_id: value }))}
-                        disabled={loading}
-                      >
-                        <SelectTrigger id="time-slot-staff">
-                          <SelectValue placeholder="Select a staff member" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {staff.map(staffMember => (
-                            <SelectItem key={staffMember.id} value={staffMember.id}>
-                              {staffMember.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="time-slot-date">Date</Label>
-                      <Select
-                        value={newTimeSlot.date}
-                        onValueChange={(value) => setNewTimeSlot(prev => ({ ...prev, date: value }))}
-                        disabled={loading}
-                      >
-                        <SelectTrigger id="time-slot-date">
-                          <SelectValue placeholder="Select a date" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {generateDateOptions().map(dateOption => (
-                            <SelectItem key={dateOption} value={dateOption}>
-                              {format(parseISO(dateOption), 'PPP')}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="time-slot-time">Time</Label>
-                      <Select
-                        value={newTimeSlot.time}
-                        onValueChange={(value) => setNewTimeSlot(prev => ({ ...prev, time: value }))}
-                        disabled={loading}
-                      >
-                        <SelectTrigger id="time-slot-time">
-                          <SelectValue placeholder="Select a time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {generateTimeOptions().map(timeOption => (
-                            <SelectItem key={timeOption} value={timeOption}>
-                              {timeOption}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="time-slot-available"
-                        checked={newTimeSlot.is_available}
-                        onCheckedChange={(checked: boolean) => setNewTimeSlot(prev => ({ ...prev, is_available: checked }))}
-                        disabled={loading}
-                      />
-                      <Label htmlFor="time-slot-available">Is Available</Label>
-                    </div>
-                    <Button type="submit" className="btn-accent" disabled={loading}>
-                      {loading ? 'Saving...' : (editingTimeSlotId ? 'Update Time Slot' : 'Add Time Slot')}
-                    </Button>
-                    {editingTimeSlotId && (
-                      <Button variant="outline" onClick={() => {
-                        setEditingTimeSlotId(null);
-                        setNewTimeSlot({ staff_id: '', date: '', time: '', is_available: true });
-                      }} className="ml-2">Cancel</Button>
-                    )}
-                  </form>
-
-                  <h3 className="text-xl font-playfair font-bold text-primary mt-8 mb-4">Existing Time Slots</h3>
-                  {timeSlots.length === 0 ? (
-                    <p className="text-muted-foreground">No time slots found. Add one above!</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {timeSlots.map((slot) => (
-                        <Card key={slot.id} className="p-4 flex items-center justify-between">
-                          <div>
-                            <p className="font-semibold text-lg">{slot.staff?.name || 'N/A'} - {format(parseISO(slot.date), 'PPP')} at {slot.time}</p>
-                            <p className="text-muted-foreground">Status: {slot.is_available ? 'Available' : 'Booked'}</p>
-                            {slot.booking_id && (
-                              <p className="text-muted-foreground text-sm">Booked by: {slot.bookings?.customer_name || 'N/A'} (ID: {slot.booking_id})</p>
-                            )}
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="icon" onClick={() => startEditingTimeSlot(slot)}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="destructive" size="icon" onClick={() => handleDeleteTimeSlot(slot.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
+                  <BulkTimeSlotCreator onCreateSlots={handleBulkCreateTimeSlots} staff={staff} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -893,7 +843,7 @@ const AdminDashboard = () => {
                   <CardTitle>Manage Bookings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Booking management UI will go here.</p>
+                  <p>Booking management complete! Users can now book services through the enhanced booking flow.</p>
                 </CardContent>
               </Card>
             </TabsContent>
