@@ -1,0 +1,16 @@
+-- Insert demo services
+INSERT INTO public.services (name, description, price, duration, image_url, is_active) VALUES
+('Hair Cut & Styling', 'Professional haircut with styling. Includes wash, cut, and blow dry.', '₹500', 60, '/placeholder.svg', true),
+('Deep Cleansing Facial', 'Rejuvenating facial treatment with deep cleansing and moisturizing.', '₹800', 90, '/placeholder.svg', true),
+('Bridal Makeup', 'Complete bridal makeup package with hair styling and jewelry setting.', '₹3000', 180, '/placeholder.svg', true),
+('Hair Color & Highlights', 'Professional hair coloring service with highlights and conditioning.', '₹1200', 120, '/placeholder.svg', true),
+('Relaxing Body Massage', 'Full body therapeutic massage for complete relaxation.', '₹600', 60, '/placeholder.svg', true),
+('Eyebrow Threading', 'Precise eyebrow shaping and threading service.', '₹200', 30, '/placeholder.svg', true),
+('Manicure & Pedicure', 'Complete nail care service with polish and cuticle treatment.', '₹400', 45, '/placeholder.svg', true);
+
+-- Insert demo staff
+INSERT INTO public.staff (name, role, bio, image_url, is_active, working_hours) VALUES
+('Sarah Johnson', 'Hair Specialist', 'Expert hair stylist with 8+ years experience in cutting and styling. Specializes in modern cuts and color techniques.', '/placeholder.svg', true, '{"monday": {"start": "09:00", "end": "18:00"}, "tuesday": {"start": "09:00", "end": "18:00"}, "wednesday": {"start": "09:00", "end": "18:00"}, "thursday": {"start": "09:00", "end": "18:00"}, "friday": {"start": "09:00", "end": "18:00"}, "saturday": {"start": "10:00", "end": "16:00"}}'),
+('Maya Patel', 'Facial Expert', 'Certified beautician specializing in skincare treatments and facial therapies. Expert in anti-aging and acne treatments.', '/placeholder.svg', true, '{"monday": {"start": "10:00", "end": "19:00"}, "tuesday": {"start": "10:00", "end": "19:00"}, "wednesday": {"start": "10:00", "end": "19:00"}, "thursday": {"start": "10:00", "end": "19:00"}, "friday": {"start": "10:00", "end": "19:00"}, "saturday": {"start": "09:00", "end": "17:00"}}'),
+('Priya Sharma', 'Bridal Makeup Artist', 'Professional bridal makeup artist with expertise in traditional and contemporary looks. Over 5 years experience.', '/placeholder.svg', true, '{"tuesday": {"start": "08:00", "end": "20:00"}, "wednesday": {"start": "08:00", "end": "20:00"}, "thursday": {"start": "08:00", "end": "20:00"}, "friday": {"start": "08:00", "end": "20:00"}, "saturday": {"start": "07:00", "end": "21:00"}, "sunday": {"start": "07:00", "end": "21:00"}}'),
+('Ravi Kumar', 'Color Specialist', 'Master colorist with expertise in hair coloring, highlights, and color correction. Trained in latest color techniques.', '/placeholder.svg', true, '{"monday": {"start": "11:00", "end": "20:00"}, "wednesday": {"start": "11:00", "end": "20:00"}, "thursday": {"start": "11:00", "end": "20:00"}, "friday": {"start": "11:00", "end": "20:00"}, "saturday": {"start": "09:00", "end": "18:00"}, "sunday": {"start": "10:00", "end": "17:00"}}');
