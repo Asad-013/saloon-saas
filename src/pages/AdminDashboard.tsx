@@ -3,7 +3,7 @@ import Footer from '@/components/Footer';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import BulkTimeSlotCreator from '@/components/BulkTimeSlotCreator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
     is_active: true,
   });
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
-  const [staffServices, setStaffServices] = useState<any[]>([]);
+  const [staffServices, setStaffServices] = useState<any[]>([]); // To store staff-service relationships
 
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
@@ -49,8 +49,6 @@ const AdminDashboard = () => {
   const [selectedTimes, setSelectedTimes] = useState<Set<string>>(new Set());
   const [isTimeSlotAvailable, setIsTimeSlotAvailable] = useState<boolean>(true);
   const [editingTimeSlotId, setEditingTimeSlotId] = useState<string | null>(null);
-
-  const [bookings, setBookings] = useState<any[]>([]);
 
   const [bookings, setBookings] = useState<any[]>([]);
 
@@ -177,7 +175,6 @@ const AdminDashboard = () => {
       .insert([{
         name: newService.name,
         description: newService.description,
-        price: newService.price, // price is already a string
         price: newService.price,
         duration: parseInt(newService.duration),
         image_url: newService.image_url,
@@ -212,7 +209,6 @@ const AdminDashboard = () => {
       .update({
         name: newService.name,
         description: newService.description,
-        price: newService.price, // price is already a string
         price: newService.price,
         duration: parseInt(newService.duration),
         image_url: newService.image_url,
@@ -271,7 +267,7 @@ const AdminDashboard = () => {
     setNewService({
       name: service.name,
       description: service.description || '',
-      price: service.price, // service.price is already a string based on Supabase type
+      price: service.price,
       duration: service.duration.toString(),
       image_url: service.image_url || '',
       is_active: service.is_active,
@@ -552,7 +548,6 @@ const AdminDashboard = () => {
     setIsTimeSlotAvailable(slot.is_available);
   };
 
-  // Helper functions
   const generateTimeOptions = () => {
     const times = [];
     for (let i = 9; i <= 18; i++) { // 9 AM to 6 PM
@@ -571,31 +566,6 @@ const AdminDashboard = () => {
       dates.push(date.toISOString().split('T')[0]);
     }
     return dates;
-  };
-
-  const handleUpdateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status })
-      .eq('id', bookingId);
-
-    if (error) {
-      toast({
-        title: "Error updating booking status",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Booking Status Updated",
-        description: `Booking status updated to ${status}.`,
-      });
-      // Re-fetch bookings to update the list
-      const { data: bookingsData, error: fetchError } = await supabase.from('bookings').select('*, services(name), staff(name)').order('created_at', { ascending: false });
-      if (!fetchError) setBookings(bookingsData || []);
-    }
-    setLoading(false);
   };
 
   const handleTimeToggle = (time: string) => {
@@ -629,7 +599,7 @@ const AdminDashboard = () => {
         description: `Booking status updated to ${status}.`,
       });
       // Re-fetch bookings to update the list
-      const { data: bookingsData, error: fetchError } = await supabase.from('bookings').select('*');
+      const { data: bookingsData, error: fetchError } = await supabase.from('bookings').select('*, services(name), staff(name)').order('created_at', { ascending: false });
       if (!fetchError) setBookings(bookingsData || []);
     }
     setLoading(false);
@@ -899,7 +869,6 @@ const AdminDashboard = () => {
                                             id={`staff-${staffMember.id}-service-${service.id}`}
                                             checked={isAssigned}
                                             onCheckedChange={(checked: boolean) => handleAssignService(staffMember.id, service.id, checked)}
-                                            onCheckedChange={(checked) => handleAssignService(staffMember.id, service.id, checked as boolean)}
                                             disabled={loading}
                                           />
                                           <label
@@ -1054,38 +1023,6 @@ const AdminDashboard = () => {
                   <CardTitle>Manage Bookings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {bookings.length === 0 ? (
-                    <p className="text-muted-foreground">No bookings found.</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {bookings.map((booking) => (
-                        <Card key={booking.id} className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="font-semibold text-lg">Booking for {booking.services?.name || 'N/A'}</p>
-                              <p className="text-muted-foreground">Staff: {booking.staff?.name || 'N/A'}</p>
-                              <p className="text-muted-foreground">Customer: {booking.customer_name || 'N/A'}</p>
-                              <p className="text-muted-foreground">Date: {format(parseISO(booking.booking_date), 'PPP')} at {booking.booking_time}</p>
-                              <p className="text-muted-foreground">Status: {booking.status}</p>
-                              {booking.notes && <p className="text-muted-foreground text-sm">Notes: {booking.notes}</p>}
-                            </div>
-                            <div className="flex space-x-2">
-                              {booking.status === 'pending' && (
-                                <Button variant="outline" className="btn-accent" onClick={() => handleUpdateBookingStatus(booking.id, 'confirmed')}>
-                                  Confirm
-                                </Button>
-                              )}
-                              {(booking.status === 'pending' || booking.status === 'confirmed') && (
-                                <Button variant="destructive" onClick={() => handleUpdateBookingStatus(booking.id, 'cancelled')}>
-                                  Cancel
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </Card>
-                      ))}
-                    </div>
-                  )}
                   {bookings.length === 0 ? (
                     <p className="text-muted-foreground">No bookings found.</p>
                   ) : (
