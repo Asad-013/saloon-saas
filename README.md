@@ -54,8 +54,8 @@ To get this project up and running on your local machine, follow these steps:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/AzamKhan03/radiant-apprentice.git
-    cd radiant-apprentice
+   [ git clone https://github.com/Asad-013/saloon-saas.git
+    cd saloon-saas
     ```
 
 2.  **Install dependencies:**
