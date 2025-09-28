@@ -44,13 +44,13 @@ const AdminDashboard = () => {
   const [staffServices, setStaffServices] = useState<any[]>([]);
 
   const [timeSlots, setTimeSlots] = useState<any[]>([]);
-  const [newTimeSlot, setNewTimeSlot] = useState({
-    staff_id: '',
-    date: '',
-    time: '',
-    is_available: true,
-  });
+  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedTimes, setSelectedTimes] = useState<Set<string>>(new Set());
+  const [isTimeSlotAvailable, setIsTimeSlotAvailable] = useState<boolean>(true);
   const [editingTimeSlotId, setEditingTimeSlotId] = useState<string | null>(null);
+
+  const [bookings, setBookings] = useState<any[]>([]);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -418,27 +418,43 @@ const AdminDashboard = () => {
   const handleAddTimeSlot = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    if (!selectedStaffId || !selectedDate || selectedTimes.size === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a staff member, date, and at least one time slot.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
+    const newSlots = Array.from(selectedTimes).map(time => ({
+      staff_id: selectedStaffId,
+      date: selectedDate,
+      time: time,
+      is_available: isTimeSlotAvailable,
+    }));
+
     const { data, error } = await supabase
       .from('time_slots')
-      .insert([{
-        staff_id: newTimeSlot.staff_id,
-        date: newTimeSlot.date,
-        time: newTimeSlot.time,
-        is_available: newTimeSlot.is_available,
-      }]);
+      .insert(newSlots);
 
     if (error) {
       toast({
-        title: "Error adding time slot",
+        title: "Error adding time slot(s)",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Time Slot Added",
-        description: "Time slot has been added.",
+        title: "Time Slot(s) Added",
+        description: `${selectedTimes.size} time slot(s) have been added.`, 
       });
-      setNewTimeSlot({ staff_id: '', date: '', time: '', is_available: true });
+      setSelectedStaffId('');
+      setSelectedDate('');
+      setSelectedTimes(new Set());
+      setIsTimeSlotAvailable(true);
       // Re-fetch time slots
       const { data: timeSlotsData, error: fetchError } = await supabase.from('time_slots').select('*, staff(name), bookings(id, customer_name)').order('date', { ascending: true }).order('time', { ascending: true });
       if (!fetchError) setTimeSlots(timeSlotsData || []);
@@ -450,13 +466,15 @@ const AdminDashboard = () => {
     e.preventDefault();
     if (!editingTimeSlotId) return;
     setLoading(true);
-    const { data, error } = await supabase
+    // For editing, we assume the user is updating a single time slot
+    // To support multiple edits for existing slots, a more complex UI would be needed.
+    const { error } = await supabase
       .from('time_slots')
       .update({
-        staff_id: newTimeSlot.staff_id,
-        date: newTimeSlot.date,
-        time: newTimeSlot.time,
-        is_available: newTimeSlot.is_available,
+        staff_id: selectedStaffId,
+        date: selectedDate,
+        time: Array.from(selectedTimes)[0] || '', // Assuming only one time selected for edit
+        is_available: isTimeSlotAvailable,
       })
       .eq('id', editingTimeSlotId);
 
@@ -472,7 +490,10 @@ const AdminDashboard = () => {
         description: "Time slot has been updated.",
       });
       setEditingTimeSlotId(null);
-      setNewTimeSlot({ staff_id: '', date: '', time: '', is_available: true });
+      setSelectedStaffId('');
+      setSelectedDate('');
+      setSelectedTimes(new Set());
+      setIsTimeSlotAvailable(true);
       // Re-fetch time slots
       const { data: timeSlotsData, error: fetchError } = await supabase.from('time_slots').select('*, staff(name), bookings(id, customer_name)').order('date', { ascending: true }).order('time', { ascending: true });
       if (!fetchError) setTimeSlots(timeSlotsData || []);
@@ -508,22 +529,18 @@ const AdminDashboard = () => {
 
   const startEditingTimeSlot = (slot: any) => {
     setEditingTimeSlotId(slot.id);
-    setNewTimeSlot({
-      staff_id: slot.staff_id,
-      date: slot.date,
-      time: slot.time,
-      is_available: slot.is_available,
-    });
+    setSelectedStaffId(slot.staff_id);
+    setSelectedDate(slot.date);
+    setSelectedTimes(new Set([slot.time])); // Only one time selected for editing a single slot
+    setIsTimeSlotAvailable(slot.is_available);
   };
 
   // Helper functions
   const generateTimeOptions = () => {
     const times = [];
-    for (let hour = 9; hour <= 18; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        times.push(time);
-      }
+    for (let i = 9; i <= 18; i++) { // 9 AM to 6 PM
+      times.push(`${i.toString().padStart(2, '0')}:00`);
+      times.push(`${i.toString().padStart(2, '0')}:30`);
     }
     return times;
   };
@@ -531,12 +548,49 @@ const AdminDashboard = () => {
   const generateDateOptions = () => {
     const dates = [];
     const today = new Date();
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 30; i++) { // Next 30 days
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       dates.push(date.toISOString().split('T')[0]);
     }
     return dates;
+  };
+
+  const handleTimeToggle = (time: string) => {
+    setSelectedTimes(prevSelected => {
+      const newSelection = new Set(prevSelected);
+      if (newSelection.has(time)) {
+        newSelection.delete(time);
+      } else {
+        newSelection.add(time);
+      }
+      return newSelection;
+    });
+  };
+
+  const handleUpdateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('bookings')
+      .update({ status })
+      .eq('id', bookingId);
+
+    if (error) {
+      toast({
+        title: "Error updating booking status",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Booking Status Updated",
+        description: `Booking status updated to ${status}.`,
+      });
+      // Re-fetch bookings to update the list
+      const { data: bookingsData, error: fetchError } = await supabase.from('bookings').select('*');
+      if (!fetchError) setBookings(bookingsData || []);
+    }
+    setLoading(false);
   };
 
   // Bulk time slot creation
@@ -843,7 +897,152 @@ const AdminDashboard = () => {
                   <CardTitle>Manage Bookings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p>Booking management complete! Users can now book services through the enhanced booking flow.</p>
+                  <form onSubmit={editingTimeSlotId ? handleEditTimeSlot : handleAddTimeSlot} className="space-y-4">
+                    <div>
+                      <Label htmlFor="time-slot-staff">Staff Member</Label>
+                      <Select
+                        value={selectedStaffId}
+                        onValueChange={setSelectedStaffId}
+                        disabled={loading}
+                      >
+                        <SelectTrigger id="time-slot-staff">
+                          <SelectValue placeholder="Select a staff member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {staff.map(staffMember => (
+                            <SelectItem key={staffMember.id} value={staffMember.id}>
+                              {staffMember.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="time-slot-date">Date</Label>
+                      <Select
+                        value={selectedDate}
+                        onValueChange={setSelectedDate}
+                        disabled={loading}
+                      >
+                        <SelectTrigger id="time-slot-date">
+                          <SelectValue placeholder="Select a date" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {generateDateOptions().map(dateOption => (
+                            <SelectItem key={dateOption} value={dateOption}>
+                              {format(parseISO(dateOption), 'PPP')}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="time-slot-time">Select Times</Label>
+                      <div className="grid grid-cols-4 gap-2 mt-2">
+                        {generateTimeOptions().map(timeOption => (
+                          <Button
+                            key={timeOption}
+                            variant={selectedTimes.has(timeOption) ? 'default' : 'outline'}
+                            onClick={() => handleTimeToggle(timeOption)}
+                            type="button"
+                            disabled={loading || !selectedStaffId || !selectedDate}
+                            className="w-full"
+                          >
+                            {timeOption}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="time-slot-available"
+                        checked={isTimeSlotAvailable}
+                        onCheckedChange={(checked: boolean) => setIsTimeSlotAvailable(checked)}
+                        disabled={loading}
+                      />
+                      <Label htmlFor="time-slot-available">Is Available</Label>
+                    </div>
+                    <Button type="submit" className="btn-accent" disabled={loading || selectedTimes.size === 0}>
+                      {loading ? 'Saving...' : (editingTimeSlotId ? 'Update Time Slot' : 'Add Time Slot(s)')}
+                    </Button>
+                    {editingTimeSlotId && (
+                      <Button variant="outline" onClick={() => {
+                        setEditingTimeSlotId(null);
+                        setSelectedStaffId('');
+                        setSelectedDate('');
+                        setSelectedTimes(new Set());
+                        setIsTimeSlotAvailable(true);
+                      }} className="ml-2">Cancel</Button>
+                    )}
+                  </form>
+
+                  <h3 className="text-xl font-playfair font-bold text-primary mt-8 mb-4">Existing Time Slots</h3>
+                  {timeSlots.length === 0 ? (
+                    <p className="text-muted-foreground">No time slots found. Add one above!</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {timeSlots.map((slot) => (
+                        <Card key={slot.id} className="p-4 flex items-center justify-between">
+                          <div>
+                            <p className="font-semibold text-lg">{slot.staff?.name || 'N/A'} - {format(parseISO(slot.date), 'PPP')} at {slot.time}</p>
+                            <p className="text-muted-foreground">Status: {slot.is_available ? 'Available' : 'Booked'}</p>
+                            {slot.booking_id && (
+                              <p className="text-muted-foreground text-sm">Booked by: {slot.bookings?.customer_name || 'N/A'} (ID: {slot.booking_id})</p>
+                            )}
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="icon" onClick={() => startEditingTimeSlot(slot)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="destructive" size="icon" onClick={() => handleDeleteTimeSlot(slot.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="bookings">
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle>Manage Bookings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {bookings.length === 0 ? (
+                    <p className="text-muted-foreground">No bookings found.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {bookings.map((booking) => (
+                        <Card key={booking.id} className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-semibold text-lg">Booking for {booking.services?.name || 'N/A'}</p>
+                              <p className="text-muted-foreground">Staff: {booking.staff?.name || 'N/A'}</p>
+                              <p className="text-muted-foreground">Customer: {booking.customer_name || 'N/A'}</p>
+                              <p className="text-muted-foreground">Date: {format(parseISO(booking.booking_date), 'PPP')} at {booking.booking_time}</p>
+                              <p className="text-muted-foreground">Status: {booking.status}</p>
+                              {booking.notes && <p className="text-muted-foreground text-sm">Notes: {booking.notes}</p>}
+                            </div>
+                            <div className="flex space-x-2">
+                              {booking.status === 'pending' && (
+                                <Button variant="outline" className="btn-accent" onClick={() => handleUpdateBookingStatus(booking.id, 'confirmed')}>
+                                  Confirm
+                                </Button>
+                              )}
+                              {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                                <Button variant="destructive" onClick={() => handleUpdateBookingStatus(booking.id, 'cancelled')}>
+                                  Cancel
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
