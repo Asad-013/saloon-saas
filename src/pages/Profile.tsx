@@ -31,7 +31,7 @@ const Profile = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('bookings')
-        .select('*, services(name)') // Fetch service name
+        .select('*, services(name)')
         .eq('user_id', userId)
         .order('booking_date', { ascending: false });
 
